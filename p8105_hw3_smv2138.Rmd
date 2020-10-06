@@ -93,3 +93,34 @@ instacart %>%
   )
 ```
 
+### Problem 2
+
+Part 1
+pivot longer to the activity variables (activity_count and minute of the day)
+check is minute of day in a num format
+
+Part 2
+groupby and summarize problem
+make sure day of the week is in the order you want it to be 
+Part 3
+24 hours of activity looks like in each minute in each day
+min on x activity count on y. color is day of the week
+geom_line might work better than a scatter
+
+
+### Problem 3
+
+Part 1
+separate the date variable into 3 parts (day, month, year)
+use count
+
+Part 2
+collection of data mani followed by a plotting step
+group by and summarize problem 
+groupby station, year, month and the summarize avg max temp
+will need to filter for onlt january and july
+
+Part 3
+patchwork
+one is scatter plot maybe? or contour or hex plot
+one is box, violin 
