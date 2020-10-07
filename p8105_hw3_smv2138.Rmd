@@ -115,7 +115,7 @@ accel_data =
     values_to = "min_of_day"
   ) %>% 
   mutate(
-    min_of_day = as.numeric(min_of_day),
+    min_of_day_num = as.numeric(min_of_day),
     day_type = ifelse(day == "Saturday" | day == "Sunday", "weekend", "weekday")
   )
 ```
@@ -126,8 +126,8 @@ The results dataframe has `r nrow(accel_data)` rows and `r ncol(accel_data)` col
 
 ```{r}
 accel_data %>% 
-  group_by(day_type) %>% 
-  count(day, day_type)
+  group_by(day) %>% 
+  mean(min_of_day)
 ```
 
 groupby and summarize problem
