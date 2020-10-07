@@ -115,9 +115,10 @@ accel_data =
     values_to = "min_of_day"
   ) %>% 
   mutate(
-    min_of_day_num = as.numeric(min_of_day),
+    min_of_day = as.numeric(min_of_day),
     day_type = ifelse(day == "Saturday" | day == "Sunday", "weekend", "weekday")
   )
+
 ```
 The results dataframe has `r nrow(accel_data)` rows and `r ncol(accel_data)` columns. The data frame includes week, day_id and day of the week variables. I used the day variable to create a day_type variable which indicates whether it is a weekday or a weekend. Furthermore, I pivoted the activity counts and minutes variables to longer. Now there is an activity count and min of the day variable in tidy format.
 
@@ -127,12 +128,20 @@ The results dataframe has `r nrow(accel_data)` rows and `r ncol(accel_data)` col
 ```{r}
 accel_data %>% 
   group_by(day) %>% 
-  mean(min_of_day)
+  summarize(activity_count, min_of_day)
 ```
 
 groupby and summarize problem
 make sure day of the week is in the order you want it to be 
-Part 3
+
+### Part 3
+
+```{r}
+accel_data %>% 
+  ggplot(aes(x = min_of_day, y = activity_count, color = day)) +
+  geom_line()
+```
+
 24 hours of activity looks like in each minute in each day
 min on x activity count on y. color is day of the week
 geom_line might work better than a scatter
@@ -140,9 +149,28 @@ geom_line might work better than a scatter
 
 ## Problem 3
 
-Part 1
+### Part 1
+
+```{r}
+data("ny_noaa")
+```
+
 separate the date variable into 3 parts (day, month, year)
 use count
+Data cleaning
+
+```{r}
+ny_noaa %>% 
+  separate(date, into = c("year", "day", "month")) %>% 
+  mutate(
+    prcp = as.numeric(prcp),
+    snow = as.numeric(snow),
+    snwd = as.numeric(snwd),
+    tmax = as.numeric(tmax),
+    tmin = as.numeric(tmin)
+  )
+```
+
 
 Part 2
 collection of data mani followed by a plotting step
