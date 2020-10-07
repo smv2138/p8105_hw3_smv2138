@@ -27,7 +27,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ```
 
 
-### Problem 1
+## Problem 1
 
 Load "instacart" dataset
 
@@ -39,6 +39,7 @@ This dataset contains `r nrow(instacart)` rows and ... columns
 
 Observations are the level of itesm in the order by users. There are user / order variables -- user id, order id, order day and order hour. There are also item variables -- name, aisle, department and some numeric codes.
 
+### Part 1
 How many aisles and which are the most items from?
 
 ```{r}
@@ -47,8 +48,11 @@ instacart %>%
   arrange(desc(n))
 ```
 
+### Part 2
 Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 Counting produces a dataframe that we can manipulate
+
+Notes for me: 
 We want to rotate axis labels because they're all overlapping 
 Order from least to most number of orders (change aisle to a factor)
   "aisle = fct_reorder(aisle, n)" reorder aisle by n
@@ -65,7 +69,10 @@ instacart %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
+### Part 3
 Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
+Notes for me:
 To do a ranking that is different for each aisle, we need to group first
 Putting group_by before count is important because in the output we will retain the aisle. So it will count the n BY the aisle.
 ```{r}
@@ -80,6 +87,7 @@ instacart %>%
   
 ```
 
+### Part 4
 Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers
 
 ```{r}
@@ -93,13 +101,35 @@ instacart %>%
   )
 ```
 
-### Problem 2
+## Problem 2
 
-Part 1
-pivot longer to the activity variables (activity_count and minute of the day)
-check is minute of day in a num format
+### Part 1
 
-Part 2
+```{r}
+accel_data = 
+  read_csv("./data/accel_data.csv") %>% 
+  janitor::clean_names() %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity_count",
+    values_to = "min_of_day"
+  ) %>% 
+  mutate(
+    min_of_day = as.numeric(min_of_day),
+    day_type = ifelse(day == "Saturday" | day == "Sunday", "weekend", "weekday")
+  )
+```
+The results dataframe has `r nrow(accel_data)` rows and `r ncol(accel_data)` columns. The data frame includes week, day_id and day of the week variables. I used the day variable to create a day_type variable which indicates whether it is a weekday or a weekend. Furthermore, I pivoted the activity counts and minutes variables to longer. Now there is an activity count and min of the day variable in tidy format.
+
+
+### Part 2
+
+```{r}
+accel_data %>% 
+  group_by(day_type) %>% 
+  count(day, day_type)
+```
+
 groupby and summarize problem
 make sure day of the week is in the order you want it to be 
 Part 3
@@ -108,7 +138,7 @@ min on x activity count on y. color is day of the week
 geom_line might work better than a scatter
 
 
-### Problem 3
+## Problem 3
 
 Part 1
 separate the date variable into 3 parts (day, month, year)
