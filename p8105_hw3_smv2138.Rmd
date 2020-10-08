@@ -125,11 +125,11 @@ accel_data =
   )
 
 ```
-The results dataframe has `r nrow(accel_data)` rows and `r ncol(accel_data)` columns. The data frame includes week, day_id and day of the week variables. I used the day variable to create a day_type variable which indicates whether it is a weekday or a weekend. Furthermore, I pivoted the activity counts and minutes variables to longer. Now there is an activity count and min of the day variable in tidy format.Furthermore, by releveling the data, the days of the week will be listed in intuitive order. 
+The results data frame has `r nrow(accel_data)` rows and `r ncol(accel_data)` columns. The data frame includes week, day_id and day of the week variables. I used the day variable to create a day_type variable which indicates whether it is a weekday or a weekend. Furthermore, I pivoted the activity counts and minutes variables to longer. Now there is an activity count and min of the day variable in tidy format.Furthermore, by re-leveling the data, the days of the week will be listed in intuitive order. 
 
 
 ### Part 2
-Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied data-set, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
 ```{r}
 accel_data %>% 
@@ -140,8 +140,6 @@ accel_data %>%
     values_from = total_act
   ) %>% 
    knitr::kable()
-  
-
 ```
 
 
@@ -161,10 +159,8 @@ accel_data %>%
   )
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
+The plot above shows minutes of the day and activity counts by days of the week (colors). By including a smooth line to show the average trend by day, we are able to observe patterns more clearly. There seems to be a noticeable peak in activity counts on Friday evening and around the middle of the day on Sunday. Other than those clear peaks in the curves, the rest of the activity counts seem to be around the same throughout the day for each day of the week.
 
-24 hours of activity looks like in each minute in each day
-min on x activity count on y. color is day of the week
-geom_line might work better than a scatter
 
 
 ## Problem 3
@@ -175,38 +171,53 @@ Do some data cleaning. Create separate variables for year, month, and day. Ensur
 data("ny_noaa")
 ```
 
-Data cleaning
-
 Notes for me: Separated the date varible. Converted prcp, snow, snwd, tmin and tmax to numeric. Changed prcp, snow and snwd from mm to cm. Changed tmax and tmin from tenth of degrees of C to C. 
 ```{r}
 ny_noaa =
   ny_noaa %>% 
   separate(date, into = c("year", "day", "month")) %>% 
   mutate(
-    prcp = as.numeric(prcp*0.1),
-    snow = as.numeric(snow*0.1),
-    snwd = as.numeric(snwd*0.1),
-    tmax = as.numeric(tmax)*10,
-    tmin = as.numeric(tmin)*10
-  ) %>% 
+    prcp = as.numeric(prcp / 10),
+    tmax = as.numeric(tmax) / 10,
+    tmin = as.numeric(tmin) / 10,
+    month = as.numeric(month),
+    day = as.numeric(day),
+    year = as.numeric(year))
+
+
+ny_noaa %>% 
   count(snow) %>% 
   arrange(desc(n))
 ```
 The most commonly observed value for snowfall in cm is 0. This is probably due to the fact that the data is collected from all around the world, and in many parts of the world, snow is rare or infrequent. Furthermore, the season also impacts how much snow or if there is snow at all in these regions. 
 
 
-
 ### Part 2
 Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
 
-Notes for me:
+Notes for me: I filtered for only January and July and grouped by year, month and station id. Then I calculated the average of max temp. I usted these data manipulation sets to plot the graph. 
+```{r}
+ny_noaa %>% 
+  filter(month %in% c(01, 07)) %>% 
+  group_by(year, month, id) %>% 
+  summarize(
+    mean_max_temp = mean(tmax, na.rm = TRUE)
+  ) %>% 
+  ggplot(aes(x = year, y = mean_max_temp, group = id)) +
+  geom_point() +
+  geom_path() +
+  facet_grid(~month) +
+  labs(
+    x = "Year",
+    y = "Average Max Temp (c)"
+  )
+  
+```
+Yes, there are two outliers in the July plot around 2005 and 2007, where one is above the plot and the other is below the plow respectively. These points are not connected by the path line. There are also some values that are far from the general average mean temp. For example, in the January plot, arounf 1999, the average mean tem was below -10 degrees C with would be considered an outlier. Generally, however, most of the mean temps lie between 10 and 30 degrees C. There are some 
 
-collection of data mani followed by a plotting step
-group by and summarize problem 
-groupby station, year, month and the summarize avg max temp
-will need to filter for onlt january and july
 
-Part 3
+### Part 3
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
 patchwork
 one is scatter plot maybe? or contour or hex plot
 one is box, violin 
