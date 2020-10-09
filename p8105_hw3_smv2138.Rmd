@@ -6,6 +6,8 @@ author: Sushupta Vijapur
 ```{r setup}
 library(tidyverse)
 library(p8105.datasets)
+library(ggridges)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -184,7 +186,6 @@ ny_noaa =
     day = as.numeric(day),
     year = as.numeric(year))
 
-
 ny_noaa %>% 
   count(snow) %>% 
   arrange(desc(n))
@@ -213,11 +214,28 @@ ny_noaa %>%
   )
   
 ```
-Yes, there are two outliers in the July plot around 2005 and 2007, where one is above the plot and the other is below the plow respectively. These points are not connected by the path line. There are also some values that are far from the general average mean temp. For example, in the January plot, arounf 1999, the average mean tem was below -10 degrees C with would be considered an outlier. Generally, however, most of the mean temps lie between 10 and 30 degrees C. There are some 
+Yes, there are two outliers in the July plot around 2005 and 2007, where one is above the plot and the other is below the plow respectively. These points are not connected by the path line. There are also some values that are far from the general average mean temp. For example, in the January plot, arounf 1999, the average mean temp was below -10 degrees C with would be considered an outlier. Generally, however, most of the mean temps lie between 10 and 30 degrees C. 
 
 
 ### Part 3
 Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
-patchwork
-one is scatter plot maybe? or contour or hex plot
-one is box, violin 
+ 
+
+```{r}
+hex_plot = 
+ny_noaa %>% 
+  ggplot(aes(x = tmax, y = tmin)) +
+  geom_hex() +
+  theme(legend.position = "none")
+
+violin_plot = 
+  ny_noaa %>% 
+  filter(snow < 100, snow > 0, na.rm = TRUE) %>% 
+  ggplot(aes(x = snow, y = year)) +
+  geom_violin()
+  
+hex_plot + violin_plot  
+```
+From the hex plot of tmax versus tmin, we can see that while there is some variability, the majority of the values are at the center of the distribution. 
+
+From the violin plot we can see that a lot of the variability in snowfall happened in 2010. 
