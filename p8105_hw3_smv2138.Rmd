@@ -143,7 +143,7 @@ accel_data %>%
   ) %>% 
    knitr::kable()
 ```
-
+In weeks 4 and 5, the activity was particularly lower than in other weeks and other days. 
 
 
 ### Part 3
@@ -181,19 +181,30 @@ Clean data
 ```{r}
 ny_noaa =
   ny_noaa %>% 
-  separate(date, into = c("year", "day", "month")) %>% 
+  separate(date, c("year", "month", "day"), convert = TRUE) %>% 
   mutate(
-    prcp = as.numeric(prcp / 10),
+    prcp = prcp / 100,
+    snow = snow / 10,
+    snwd = snwd / 10,
     tmax = as.numeric(tmax) / 10,
-    tmin = as.numeric(tmin) / 10,
-    month = as.numeric(month),
-    day = as.numeric(day),
-    year = as.numeric(year))
+    tmin = as.numeric(tmin) / 10
+  )
+   
+
+month_df = 
+  tibble(
+    month = 1:12,
+    month_name = month.name
+  )
+
+tidy_ny_noaa = left_join(ny_noaa, month_df, by = "month")
 
 ny_noaa %>% 
   count(snow) %>% 
   arrange(desc(n))
 ```
+This dataset contains `r nrow(tidy_ny_noaa)` rows and `r ncol(tidy_ny_noaa)` columns. I merged in a month names variable to list the names of the months instead of the numbers. FUrthermore, I converted tmin (minimum temperatue), tmax (maximum temperature) and prcp (precipitation) to acceptable and readable units. Furthermore, I split up the date variable into day, month and year. This dataset also contains data on snowfall and snowdepth as well as the stations across New York State reporting these numbers. 
+
 The most commonly observed value for snowfall in mm is 0. This is probably due to the fact that the data is collected from NYS. For the majority of a given year, there is not snow (Spring, Summer and most of Fall). 
 
 
@@ -202,25 +213,25 @@ Make a two-panel plot showing the average max temperature in January and in July
 
 
 ```{r}
-ny_noaa %>% 
-  filter(month %in% c(01, 07)) %>% 
-  mutate(month = recode(month, '01' = "January", '07' = "July")) %>% 
-  group_by(year, month, id) %>% 
+tidy_ny_noaa %>% 
+  group_by(id, year, month_name) %>% 
+  filter(month_name %in% c("January", "July")) %>% 
   summarize(
     mean_max_temp = mean(tmax, na.rm = TRUE)
   ) %>% 
   ggplot(aes(x = year, y = mean_max_temp, group = id)) +
-  geom_point() +
-  geom_path() +
-  facet_grid(~month) +
+  geom_point(size = 0.1) +
+  geom_path(size = 0.1) +
+  facet_grid(. ~ month_name) +
   labs(
+    title = "Average mean temperature for January and July by Station",
     x = "Year",
     y = "Average Max Temp (c)"
   ) +
-  theme(panel.spacing = unit(2, "lines"))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
   
 ```
-Yes, there are two outliers in the July plot around 2005 and 2007, where one is above the plot and the other is below the plow respectively. These points are not connected by the path line. most of the mean temps lie between 10 and 30 degrees C. Therefore, there are also some values that are far from the general average mean temp. For example, in the January plot, around 1999, the average mean temp was below -10 degrees C with would be considered an outlier. There are several other instances like this in both months.
+Yes, there are two outliers in the July plot around 2005 and 2007, where one is above the plot and the other is below the plow respectively. Most of the mean temps lie between 10 and 30 degrees C. Therefore, there are also some values that are far from the general average mean temp. For example, in the January plot, around 1999, the average mean temp was below -10 degrees C with would be considered an outlier. There are several other instances like this in both months.The stations do overlap over the time period in terms of max and min temps. Lastly, the mean temp in July was higher than the mean temp in January.
 
 ### Part 3
 Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
@@ -231,7 +242,7 @@ hex_plot =
 ny_noaa %>% 
   ggplot(aes(x = tmax, y = tmin)) +
   geom_hex() +
-  theme(legend.position = "none") +
+  theme(legend.direction = "vertical") +
   labs(
     title = "Max temp versus Min temp",
     x = "Maximum temperature",
@@ -241,19 +252,22 @@ ny_noaa %>%
 
 violin_plot = 
   ny_noaa %>% 
-  filter(snow < 100, snow > 0, na.rm = TRUE) %>% 
-  ggplot(aes(x = snow, y = year)) +
-  geom_violin() +
+  filter(snow < 100, snow > 0, na.rm = TRUE) %>%
+  group_by(year) %>% 
+  mutate(
+    year = as.factor(year)
+  ) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_violin(aes(fill = year), alpha = 0.5) +
   labs(
     title = "Distribution of snowfall (0-100mm) by year",
     x = "Snowfall (mm)",
     y = "Years"
-  )
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
   
-patchwork = 
-  hex_plot + violin_plot + 
-  theme(panel.spacing = unit(4, "lines"))
+hex_plot + violin_plot 
 ```
 From the hex plot of tmax versus tmin, we can see that while there is some variability, the majority of the values are at the center of the distribution. 
 
-From the violin plot we can see that a lot of the variability in snowfall happened in 2010. 
+From the violin plot we can see that was not a lot of the variability in snowfall across the years of the study. 
